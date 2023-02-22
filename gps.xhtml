@@ -1,0 +1,39 @@
+<bsh>
+    import de.fun2code.android.pawserver.AndroidInterface;
+    import org.json.*;
+    import android.location.*;
+    import java.text.SimpleDateFormat;
+
+    updated = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSSSZ");
+
+    activateGps(true);
+    loc = getGpsLocation();
+    
+    i = 0;
+    while (i < 10 && loc == null)
+    {
+        Thread.sleep(100);
+        loc = getGpsLocation();
+        i++;
+    }
+
+    json = new JSONObject();
+
+    if (loc == null)
+    {
+        json.put("Success", false);
+    }
+    else
+    {
+        json.put("Success", true);
+        json.put("Updated", updated.format(loc.getTime()));
+        json.put("Latitude", loc.getLatitude());
+        json.put("Longitude", loc.getLongitude());
+        json.put("NumSatellites", loc.getExtras().getInt("satellites")); //could be 0 if using NETWORK_PROVIDER or phone isnt implementing it.
+        json.put("Altitude", loc.hasAltitude()?loc.getAltitude():0);
+    }
+
+    request.sendResponse(json.toString().getBytes(), "text/plain");
+    request.out.flush();
+    request.out.close();
+</bsh>
